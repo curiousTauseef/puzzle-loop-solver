@@ -15,7 +15,7 @@ public:
     vector<vector<int>> hrz; // horizon link
     vector<vector<int>> vrt; // vertical link
 
-    vector<vector<bool>> ban; // baned point
+    vector<vector<bool>> ban; // banned point
 
     size_t get_conn(const int &p_r, const int &p_c)
     {
@@ -250,7 +250,7 @@ int main(int argc, char **argv)
         }
         p.vrt.push_back(tmp_row);
     }
-    // init baned point
+    // init banned point
     for (size_t row = 0; row <= p.rows; row++)
     {
         vector<bool> tmp_row;
@@ -273,7 +273,7 @@ void solve(puzzle &p)
         for (size_t col = 1; col <= p.cols; col += 2)
         {
             go_next(p, row, col, row, col);
-            // set point baned
+            // set point banned
             p.ban[row][col - 1] = true;
             p.ban[row][col] = true;
             if (col + 1 == p.cols)
