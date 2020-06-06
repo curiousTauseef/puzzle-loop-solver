@@ -18,6 +18,11 @@ void ban_edge_around_three(puzzle &p);
 void ban_edge_around_point(puzzle &p);
 void ban_point(puzzle &p);
 
+void link_around_one(puzzle &p);
+void link_around_two(puzzle &p);
+void link_around_three(puzzle &p);
+void link_around_point(puzzle &p);
+
 void DFS(puzzle &p);
 void go_vrt(puzzle p,
             const int &start_r, const int &start_c,
@@ -190,19 +195,19 @@ void ban_edge_around_one(puzzle &p)
                     p.vrt[row][col] = puzzle::BAN;
                     p.vrt[row][col + 1] = puzzle::BAN;
                 }
-                if (p.hrz_has_edge(row + 1, col))
+                else if (p.hrz_has_edge(row + 1, col))
                 {
                     p.hrz[row][col] = puzzle::BAN;
                     p.vrt[row][col] = puzzle::BAN;
                     p.vrt[row][col + 1] = puzzle::BAN;
                 }
-                if (p.vrt_has_edge(row, col))
+                else if (p.vrt_has_edge(row, col))
                 {
                     p.hrz[row][col] = puzzle::BAN;
                     p.hrz[row + 1][col] = puzzle::BAN;
                     p.vrt[row][col + 1] = puzzle::BAN;
                 }
-                if (p.vrt_has_edge(row, col + 1))
+                else if (p.vrt_has_edge(row, col + 1))
                 {
                     p.hrz[row][col] = puzzle::BAN;
                     p.hrz[row + 1][col] = puzzle::BAN;
@@ -232,32 +237,32 @@ void ban_edge_around_two(puzzle &p)
                     p.hrz[row + 1][col] = puzzle::BAN;
                     p.vrt[row][col + 1] = puzzle::BAN;
                 }
-                if (p.hrz_has_edge(row, col) &&
-                    p.hrz_has_edge(row + 1, col))
+                else if (p.hrz_has_edge(row, col) &&
+                         p.hrz_has_edge(row + 1, col))
                 {
                     p.vrt[row][col] = puzzle::BAN;
                     p.vrt[row][col + 1] = puzzle::BAN;
                 }
-                if (p.hrz_has_edge(row, col) &&
-                    p.vrt_has_edge(row, col + 1))
+                else if (p.hrz_has_edge(row, col) &&
+                         p.vrt_has_edge(row, col + 1))
                 {
                     p.hrz[row + 1][col] = puzzle::BAN;
                     p.vrt[row][col] = puzzle::BAN;
                 }
-                if (p.hrz_has_edge(row + 1, col) &&
-                    p.vrt_has_edge(row, col))
+                else if (p.hrz_has_edge(row + 1, col) &&
+                         p.vrt_has_edge(row, col))
                 {
                     p.hrz[row][col] = puzzle::BAN;
                     p.vrt[row][col + 1] = puzzle::BAN;
                 }
-                if (p.hrz_has_edge(row + 1, col) &&
-                    p.vrt_has_edge(row, col + 1))
+                else if (p.hrz_has_edge(row + 1, col) &&
+                         p.vrt_has_edge(row, col + 1))
                 {
                     p.hrz[row][col] = puzzle::BAN;
                     p.vrt[row][col] = puzzle::BAN;
                 }
-                if (p.vrt_has_edge(row, col) &&
-                    p.vrt_has_edge(row, col + 1))
+                else if (p.vrt_has_edge(row, col) &&
+                         p.vrt_has_edge(row, col + 1))
                 {
                     p.hrz[row][col] = puzzle::BAN;
                     p.hrz[row + 1][col] = puzzle::BAN;
@@ -286,21 +291,21 @@ void ban_edge_around_three(puzzle &p)
                 {
                     p.vrt[row][col + 1] = puzzle::BAN;
                 }
-                if (p.hrz_has_edge(row, col) &&
-                    p.hrz_has_edge(row + 1, col) &&
-                    p.vrt_has_edge(row, col + 1))
+                else if (p.hrz_has_edge(row, col) &&
+                         p.hrz_has_edge(row + 1, col) &&
+                         p.vrt_has_edge(row, col + 1))
                 {
                     p.vrt[row][col] = puzzle::BAN;
                 }
-                if (p.vrt_has_edge(row, col) &&
-                    p.vrt_has_edge(row, col + 1) &&
-                    p.hrz_has_edge(row, col))
+                else if (p.vrt_has_edge(row, col) &&
+                         p.vrt_has_edge(row, col + 1) &&
+                         p.hrz_has_edge(row, col))
                 {
                     p.hrz[row + 1][col] = puzzle::BAN;
                 }
-                if (p.vrt_has_edge(row, col) &&
-                    p.vrt_has_edge(row, col + 1) &&
-                    p.hrz_has_edge(row + 1, col))
+                else if (p.vrt_has_edge(row, col) &&
+                         p.vrt_has_edge(row, col + 1) &&
+                         p.hrz_has_edge(row + 1, col))
                 {
                     p.hrz[row][col] = puzzle::BAN;
                 }
@@ -327,24 +332,24 @@ void ban_edge_around_point(puzzle &p)
             {
                 p.hrz[row][col] = puzzle::BAN;
             }
-            if (!p.point_can_up(row, col) &&
-                !p.point_can_down(row, col) &&
-                p.point_can_left(row, col) &&
-                !p.point_can_right(row, col))
+            else if (!p.point_can_up(row, col) &&
+                     !p.point_can_down(row, col) &&
+                     p.point_can_left(row, col) &&
+                     !p.point_can_right(row, col))
             {
                 p.hrz[row][col - 1] = puzzle::BAN;
             }
-            if (!p.point_can_up(row, col) &&
-                p.point_can_down(row, col) &&
-                !p.point_can_left(row, col) &&
-                !p.point_can_right(row, col))
+            else if (!p.point_can_up(row, col) &&
+                     p.point_can_down(row, col) &&
+                     !p.point_can_left(row, col) &&
+                     !p.point_can_right(row, col))
             {
                 p.vrt[row][col] = puzzle::BAN;
             }
-            if (p.point_can_up(row, col) &&
-                !p.point_can_down(row, col) &&
-                !p.point_can_left(row, col) &&
-                !p.point_can_right(row, col))
+            else if (p.point_can_up(row, col) &&
+                     !p.point_can_down(row, col) &&
+                     !p.point_can_left(row, col) &&
+                     !p.point_can_right(row, col))
             {
                 p.vrt[row - 1][col] = puzzle::BAN;
             }
@@ -367,40 +372,40 @@ void ban_edge_around_point(puzzle &p)
                 if (p.point_can_right(row, col))
                     p.hrz[row][col] = puzzle::BAN;
             }
-            if (p.point_has_edge_left(row, col) &&
-                p.point_has_edge_right(row, col))
+            else if (p.point_has_edge_left(row, col) &&
+                     p.point_has_edge_right(row, col))
             {
                 if (p.point_can_up(row, col))
                     p.vrt[row - 1][col] = puzzle::BAN;
                 if (p.point_can_down(row, col))
                     p.vrt[row][col] = puzzle::BAN;
             }
-            if (p.point_has_edge_up(row, col) &&
-                p.point_has_edge_left(row, col))
+            else if (p.point_has_edge_up(row, col) &&
+                     p.point_has_edge_left(row, col))
             {
                 if (p.point_can_right(row, col))
                     p.hrz[row][col] = puzzle::BAN;
                 if (p.point_can_down(row, col))
                     p.vrt[row][col] = puzzle::BAN;
             }
-            if (p.point_has_edge_up(row, col) &&
-                p.point_has_edge_right(row, col))
+            else if (p.point_has_edge_up(row, col) &&
+                     p.point_has_edge_right(row, col))
             {
                 if (p.point_can_left(row, col))
                     p.hrz[row][col - 1] = puzzle::BAN;
                 if (p.point_can_down(row, col))
                     p.vrt[row][col] = puzzle::BAN;
             }
-            if (p.point_has_edge_down(row, col) &&
-                p.point_has_edge_left(row, col))
+            else if (p.point_has_edge_down(row, col) &&
+                     p.point_has_edge_left(row, col))
             {
                 if (p.point_can_up(row, col))
                     p.vrt[row - 1][col] = puzzle::BAN;
                 if (p.point_can_right(row, col))
                     p.hrz[row][col] = puzzle::BAN;
             }
-            if (p.point_has_edge_down(row, col) &&
-                p.point_has_edge_right(row, col))
+            else if (p.point_has_edge_down(row, col) &&
+                     p.point_has_edge_right(row, col))
             {
                 if (p.point_can_up(row, col))
                     p.vrt[row - 1][col] = puzzle::BAN;
@@ -428,6 +433,247 @@ void ban_point(puzzle &p)
                 !p.point_can_right(row, col))
             {
                 p.banned_point[row][col] = true;
+            }
+        }
+    }
+}
+
+void link_around_one(puzzle &p)
+{
+    /**
+     * . x .
+     * x 1 x
+     * . l .
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 1 &&
+                !p.complete_lat(row, col) &&
+                p.get_lat_banned_edge(row, col) == 3)
+            {
+                if (p.hrz[row][col] != puzzle::BAN)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                }
+                else if (p.hrz[row + 1][col] != puzzle::BAN)
+                {
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                }
+                else if (p.vrt[row][col] != puzzle::BAN)
+                {
+                    p.vrt[row][col] = puzzle::LINKED;
+                }
+                else if (p.vrt[row][col + 1] != puzzle::BAN)
+                {
+                    p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+            }
+        }
+    }
+}
+
+void link_around_two(puzzle &p)
+{
+    /**
+     * . l .
+     * x 2 x
+     * . l .
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 2 &&
+                !p.complete_lat(row, col) &&
+                p.get_lat_banned_edge(row, col) == 2)
+            {
+                if (p.hrz[row][col] == puzzle::BAN &&
+                    p.hrz[row + 1][col] == puzzle::BAN)
+                {
+                    p.vrt[row][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+                else if (p.vrt[row][col] == puzzle::BAN &&
+                         p.vrt[row][col + 1] == puzzle::BAN)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                }
+                else if (p.hrz[row][col] == puzzle::BAN &&
+                         p.vrt[row][col] == puzzle::BAN)
+                {
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] == puzzle::LINKED;
+                }
+                else if (p.hrz[row][col] == puzzle::BAN &&
+                         p.vrt[row][col + 1] == puzzle::BAN)
+                {
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                    p.vrt[row][col] == puzzle::LINKED;
+                }
+                else if (p.hrz[row + 1][col] == puzzle::BAN &&
+                         p.vrt[row][col] == puzzle::BAN)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] == puzzle::LINKED;
+                }
+                else if (p.hrz[row + 1][col] == puzzle::BAN &&
+                         p.vrt[row][col + 1] == puzzle::BAN)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    p.vrt[row][col] == puzzle::LINKED;
+                }
+            }
+        }
+    }
+}
+
+void link_around_three(puzzle &p)
+{
+    /**
+     * . l .
+     * x 3 l
+     * . l .
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 3 &&
+                !p.complete_lat(row, col) &&
+                p.get_lat_banned_edge(row, col) == 1)
+            {
+                if (p.hrz[row][col] == puzzle::BAN)
+                {
+                    p.hrz[row + 1][col] == puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+                else if (p.hrz[row + 1][col] == puzzle::BAN)
+                {
+                    p.hrz[row][col] == puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+                else if (p.vrt[row][col] == puzzle::BAN)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] == puzzle::LINKED;
+                }
+                else if (p.vrt[row][col + 1] == puzzle::BAN)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                    p.vrt[row][col] == puzzle::LINKED;
+                }
+            }
+        }
+    }
+    /**
+     *   x
+     * x . l .
+     *   l 3
+     *   .   .
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 3)
+            {
+                if (!p.point_can_up(row, col) &&
+                    !p.point_can_left(row, col))
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
+                }
+                if (!p.point_can_up(row, col + 1) &&
+                    !p.point_can_right(row, col + 1))
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+                if (!p.point_can_down(row + 1, col) &&
+                    !p.point_can_left(row + 1, col))
+                {
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
+                }
+                if (!p.point_can_down(row + 1, col + 1) &&
+                    !p.point_can_right(row + 1, col + 1))
+                {
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+            }
+        }
+    }
+}
+
+void link_around_point(puzzle &p)
+{
+    /**
+     *   x
+     * l . x
+     *   |
+     */
+    for (size_t row = 0; row <= p.rows; row++)
+    {
+        for (size_t col = 0; col <= p.cols; col++)
+        {
+            if (p.get_conn(row, col) == 1)
+            {
+                if (p.point_can_up(row, col) &&
+                    p.point_can_down(row, col) &&
+                    !p.point_can_left(row, col) &&
+                    !p.point_can_right(row, col))
+                {
+                    p.vrt[row - 1][col] = puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
+                }
+                else if (p.point_can_up(row, col) &&
+                         !p.point_can_down(row, col) &&
+                         p.point_can_left(row, col) &&
+                         !p.point_can_right(row, col))
+                {
+                    p.vrt[row - 1][col] = puzzle::LINKED;
+                    p.hrz[row][col - 1] = puzzle::LINKED;
+                }
+                else if (p.point_can_up(row, col) &&
+                         !p.point_can_down(row, col) &&
+                         !p.point_can_left(row, col) &&
+                         p.point_can_right(row, col))
+                {
+                    p.vrt[row - 1][col] = puzzle::LINKED;
+                    p.hrz[row][col] = puzzle::LINKED;
+                }
+                else if (!p.point_can_up(row, col) &&
+                         p.point_can_down(row, col) &&
+                         p.point_can_left(row, col) &&
+                         !p.point_can_right(row, col))
+                {
+                    p.vrt[row][col] = puzzle::LINKED;
+                    p.hrz[row][col - 1] = puzzle::LINKED;
+                }
+                else if (!p.point_can_up(row, col) &&
+                         p.point_can_down(row, col) &&
+                         !p.point_can_left(row, col) &&
+                         p.point_can_right(row, col))
+                {
+                    p.vrt[row][col] = puzzle::LINKED;
+                    p.hrz[row][col] = puzzle::LINKED;
+                }
+                else if (!p.point_can_up(row, col) &&
+                         !p.point_can_down(row, col) &&
+                         p.point_can_left(row, col) &&
+                         p.point_can_right(row, col))
+                {
+                    p.vrt[row - 1][col] = puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
+                }
             }
         }
     }

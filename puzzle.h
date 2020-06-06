@@ -15,10 +15,9 @@ public:
 
     enum edge_state
     {
-        BAN = -1,   // banned
-        NOT = 0,    // not linked
-        LINKED = 1, // linked
-        MUST = 2    // must linked
+        BAN = -1,  // banned
+        NOT = 0,   // not linked
+        LINKED = 1 // linked
     };
     vector<vector<edge_state>> hrz; // horizon link
     vector<vector<edge_state>> vrt; // vertical link
@@ -45,6 +44,14 @@ public:
                hrz_has_edge(lat_r + 1, lat_c) +
                vrt_has_edge(lat_r, lat_c) +
                vrt_has_edge(lat_r, lat_c + 1);
+    }
+
+    size_t get_lat_banned_edge(const int &lat_r, const int &lat_c)
+    {
+        return (hrz[lat_r][lat_c] == BAN ? 1 : 0) +
+               (hrz[lat_r + 1][lat_c] == BAN ? 1 : 0) +
+               (vrt[lat_r][lat_c] == BAN ? 1 : 0) +
+               (vrt[lat_r][lat_c + 1] == BAN ? 1 : 0);
     }
 
     bool hrz_sat(const int &h_r, const int &h_c)
@@ -139,12 +146,12 @@ public:
 
     int hrz_has_edge(const int &h_r, const int &h_c)
     {
-        return hrz[h_r][h_c] == LINKED || hrz[h_r][h_c] == MUST;
+        return hrz[h_r][h_c] == LINKED;
     }
 
     int vrt_has_edge(const int &v_r, const int &v_c)
     {
-        return vrt[v_r][v_c] == LINKED || vrt[v_r][v_c] == MUST;
+        return vrt[v_r][v_c] == LINKED;
     }
 
     bool hrz_has_up_lat(const int &h_r, const int &h_c)
@@ -167,14 +174,22 @@ public:
         return v_c < cols;
     }
 
+    bool complete_lat(const int &lat_r, const int &lat_c)
+    {
+        if (lat[lat_r][lat_c] >= 0 &&
+            lat[lat_r][lat_c] != lat_edge(lat_r, lat_c))
+            return false;
+        else
+            return true;
+    }
+
     bool is_fin()
     {
         for (size_t row = 0; row < rows; row++)
         {
             for (size_t col = 0; col < cols; col++)
             {
-                if (lat[row][col] >= 0 &&
-                    lat[row][col] != lat_edge(row, col))
+                if (!complete_lat(row, col))
                     return false;
             }
         }
