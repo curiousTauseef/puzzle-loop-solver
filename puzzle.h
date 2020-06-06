@@ -198,6 +198,7 @@ public:
 
     bool is_correct()
     {
+        // FIXME: check multiple loops
         for (size_t row = 0; row < rows; row++)
         {
             for (size_t col = 0; col < cols; col++)

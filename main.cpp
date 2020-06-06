@@ -113,7 +113,11 @@ int main(int argc, char **argv)
     }
     // solve puzzle
     ban_edge_around_zero(p);
-    heuristic(p);
+    if (heuristic(p) == false)
+    {
+        cerr << "Invalid puzzle\n";
+        return -1;
+    }
     DFS(p);
     cout << "Solutions: " << puzzle_results.size() << endl;
     return 0;
@@ -138,7 +142,6 @@ bool heuristic(puzzle &p)
             return false;
         if (last_step.compare(curr_step) == 0)
         {
-            cout << curr_step;
             return true;
         }
     }
