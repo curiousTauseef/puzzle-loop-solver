@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void heuristic(puzzle &p);
+bool heuristic(puzzle &p);
 
 void ban_edge_around_zero(puzzle &p);
 void ban_edge_around_one(puzzle &p);
@@ -34,6 +34,14 @@ void go_hrz(puzzle p, const int &start_r, const int &start_c,
 void go_next(puzzle &p,
              const int &start_r, const int &start_c,
              const int &dst_p_r, const int &dst_p_c);
+void vrt_go_next(puzzle &p,
+                 const int &start_r, const int &start_c,
+                 const int &v_r, const int &v_c,
+                 const int &dst_p_r, const int &dst_p_c);
+void hrz_go_next(puzzle &p,
+                 const int &start_r, const int &start_c,
+                 const int &h_r, const int &h_c,
+                 const int &dst_p_r, const int &dst_p_c);
 
 unordered_set<string> puzzle_results;
 
@@ -104,15 +112,36 @@ int main(int argc, char **argv)
         p.banned_point.push_back(tmp_row);
     }
     // solve puzzle
+    ban_edge_around_zero(p);
     heuristic(p);
     DFS(p);
     cout << "Solutions: " << puzzle_results.size() << endl;
     return 0;
 }
 
-void heuristic(puzzle &p)
+bool heuristic(puzzle &p)
 {
-    // TODO:
+    while (true)
+    {
+        const string last_step = p.to_string();
+        ban_edge_around_one(p);
+        ban_edge_around_two(p);
+        ban_edge_around_three(p);
+        ban_edge_around_point(p);
+        ban_point(p);
+        link_around_point(p);
+        link_around_three(p);
+        link_around_two(p);
+        link_around_one(p);
+        const string curr_step = p.to_string();
+        if (!p.is_correct())
+            return false;
+        if (last_step.compare(curr_step) == 0)
+        {
+            cout << curr_step;
+            return true;
+        }
+    }
 }
 
 void ban_edge_around_zero(puzzle &p)
@@ -505,25 +534,25 @@ void link_around_two(puzzle &p)
                          p.vrt[row][col] == puzzle::BAN)
                 {
                     p.hrz[row + 1][col] = puzzle::LINKED;
-                    p.vrt[row][col + 1] == puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
                 }
                 else if (p.hrz[row][col] == puzzle::BAN &&
                          p.vrt[row][col + 1] == puzzle::BAN)
                 {
                     p.hrz[row + 1][col] = puzzle::LINKED;
-                    p.vrt[row][col] == puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
                 }
                 else if (p.hrz[row + 1][col] == puzzle::BAN &&
                          p.vrt[row][col] == puzzle::BAN)
                 {
                     p.hrz[row][col] = puzzle::LINKED;
-                    p.vrt[row][col + 1] == puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
                 }
                 else if (p.hrz[row + 1][col] == puzzle::BAN &&
                          p.vrt[row][col + 1] == puzzle::BAN)
                 {
                     p.hrz[row][col] = puzzle::LINKED;
-                    p.vrt[row][col] == puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
                 }
             }
         }
@@ -547,13 +576,13 @@ void link_around_three(puzzle &p)
             {
                 if (p.hrz[row][col] == puzzle::BAN)
                 {
-                    p.hrz[row + 1][col] == puzzle::LINKED;
+                    p.hrz[row + 1][col] = puzzle::LINKED;
                     p.vrt[row][col] = puzzle::LINKED;
                     p.vrt[row][col + 1] = puzzle::LINKED;
                 }
                 else if (p.hrz[row + 1][col] == puzzle::BAN)
                 {
-                    p.hrz[row][col] == puzzle::LINKED;
+                    p.hrz[row][col] = puzzle::LINKED;
                     p.vrt[row][col] = puzzle::LINKED;
                     p.vrt[row][col + 1] = puzzle::LINKED;
                 }
@@ -561,13 +590,13 @@ void link_around_three(puzzle &p)
                 {
                     p.hrz[row][col] = puzzle::LINKED;
                     p.hrz[row + 1][col] = puzzle::LINKED;
-                    p.vrt[row][col + 1] == puzzle::LINKED;
+                    p.vrt[row][col + 1] = puzzle::LINKED;
                 }
                 else if (p.vrt[row][col + 1] == puzzle::BAN)
                 {
                     p.hrz[row][col] = puzzle::LINKED;
                     p.hrz[row + 1][col] = puzzle::LINKED;
-                    p.vrt[row][col] == puzzle::LINKED;
+                    p.vrt[row][col] = puzzle::LINKED;
                 }
             }
         }
@@ -671,8 +700,8 @@ void link_around_point(puzzle &p)
                          p.point_can_left(row, col) &&
                          p.point_can_right(row, col))
                 {
-                    p.vrt[row - 1][col] = puzzle::LINKED;
-                    p.vrt[row][col] = puzzle::LINKED;
+                    p.hrz[row][col - 1] = puzzle::LINKED;
+                    p.hrz[row][col] = puzzle::LINKED;
                 }
             }
         }
@@ -681,6 +710,19 @@ void link_around_point(puzzle &p)
 
 void DFS(puzzle &p)
 {
+    // Start with one line
+    for (size_t row = 0; row <= p.rows; row++)
+    {
+        for (size_t col = 1; col <= p.cols; col++)
+        {
+            if (!p.banned_point[row][col] && p.get_conn(row, col) == 1)
+            {
+                go_next(p, row, col, row, col);
+                return;
+            }
+        }
+    }
+    // No line on this map
     // For every points find all solutions
     for (size_t row = 0; row <= p.rows; row++)
     {
@@ -702,9 +744,6 @@ void go_vrt(puzzle p,
             const int &v_r, const int &v_c,
             const int &dst_p_r, const int &dst_p_c)
 {
-    // Link overlap
-    if (p.vrt_has_edge(v_r, v_c))
-        return;
     // Draw line
     p.vrt[v_r][v_c] = puzzle::LINKED;
     // Solved
@@ -729,17 +768,17 @@ void go_vrt(puzzle p,
     // Check lattice
     if (!p.vrt_sat(v_r, v_c))
         return;
+    // Do heuristic
+    if (heuristic(p) == false)
+        return;
     // Go next point
-    go_next(p, start_r, start_c, dst_p_r, dst_p_c);
+    vrt_go_next(p, start_r, start_c, v_r, v_c, dst_p_r, dst_p_c);
 }
 
 void go_hrz(puzzle p, const int &start_r, const int &start_c,
             const int &h_r, const int &h_c,
             const int &dst_p_r, const int &dst_p_c)
 {
-    // Link overlap
-    if (p.hrz_has_edge(h_r, h_c))
-        return;
     // Draw line
     p.hrz[h_r][h_c] = puzzle::LINKED;
     // Solved
@@ -764,8 +803,11 @@ void go_hrz(puzzle p, const int &start_r, const int &start_c,
     // Check lattice
     if (!p.hrz_sat(h_r, h_c))
         return;
+    // Do heuristic
+    if (heuristic(p) == false)
+        return;
     // Go next point
-    go_next(p, start_r, start_c, dst_p_r, dst_p_c);
+    hrz_go_next(p, start_r, start_c, h_r, h_c, dst_p_r, dst_p_c);
 }
 
 void go_next(puzzle &p,
@@ -799,5 +841,191 @@ void go_next(puzzle &p,
                start_r, start_c,
                dst_p_r, dst_p_c,
                dst_p_r, dst_p_c + 1);
+    }
+}
+
+void vrt_go_next(puzzle &p,
+                 const int &start_r, const int &start_c,
+                 const int &v_r, const int &v_c,
+                 const int &dst_p_r, const int &dst_p_c)
+{
+    if (p.get_conn(dst_p_r, dst_p_c) == 2)
+    {
+        // Solved
+        if (dst_p_r == start_r && dst_p_c == start_c)
+        {
+            // Do final check
+            if (p.is_fin())
+            {
+                // Print solution
+                const auto result = p.to_string();
+                if (puzzle_results.find(result) == puzzle_results.end())
+                {
+                    puzzle_results.insert(result);
+                    cout << p.to_string();
+                }
+            }
+            return;
+        }
+        if (p.point_can_up(dst_p_r, dst_p_c) &&
+            p.vrt_has_edge(dst_p_r - 1, dst_p_c) &&
+            dst_p_r - 1 != v_r)
+        {
+            vrt_go_next(p,
+                        start_r, start_c,
+                        dst_p_r - 1, dst_p_c,
+                        dst_p_r - 1, dst_p_c);
+        }
+        else if (p.point_can_down(dst_p_r, dst_p_c) &&
+                 p.vrt_has_edge(dst_p_r, dst_p_c) &&
+                 dst_p_r != v_r)
+        {
+            vrt_go_next(p,
+                        start_r, start_c,
+                        dst_p_r, dst_p_c,
+                        dst_p_r + 1, dst_p_c);
+        }
+        else if (p.point_can_left(dst_p_r, dst_p_c) &&
+                 p.hrz_has_edge(dst_p_r, dst_p_c - 1))
+        {
+            hrz_go_next(p,
+                        start_r, start_c,
+                        dst_p_r, dst_p_c - 1,
+                        dst_p_r, dst_p_c - 1);
+        }
+        else if (p.point_can_right(dst_p_r, dst_p_c) &&
+                 p.hrz_has_edge(dst_p_r, dst_p_c))
+        {
+            hrz_go_next(p,
+                        start_r, start_c,
+                        dst_p_r, dst_p_c,
+                        dst_p_r, dst_p_c + 1);
+        }
+    }
+    else
+    {
+        if (p.point_can_up(dst_p_r, dst_p_c) &&
+            dst_p_r - 1 != v_r)
+        {
+            go_vrt(p,
+                   start_r, start_c,
+                   dst_p_r - 1, dst_p_c,
+                   dst_p_r - 1, dst_p_c);
+        }
+        if (p.point_can_down(dst_p_r, dst_p_c) &&
+            dst_p_r != v_r)
+        {
+            go_vrt(p,
+                   start_r, start_c,
+                   dst_p_r, dst_p_c,
+                   dst_p_r + 1, dst_p_c);
+        }
+        if (p.point_can_left(dst_p_r, dst_p_c))
+        {
+            go_hrz(p,
+                   start_r, start_c,
+                   dst_p_r, dst_p_c - 1,
+                   dst_p_r, dst_p_c - 1);
+        }
+        if (p.point_can_right(dst_p_r, dst_p_c))
+        {
+            go_hrz(p,
+                   start_r, start_c,
+                   dst_p_r, dst_p_c,
+                   dst_p_r, dst_p_c + 1);
+        }
+    }
+}
+
+void hrz_go_next(puzzle &p,
+                 const int &start_r, const int &start_c,
+                 const int &h_r, const int &h_c,
+                 const int &dst_p_r, const int &dst_p_c)
+{
+    if (p.get_conn(dst_p_r, dst_p_c) == 2)
+    {
+        // Solved
+        if (dst_p_r == start_r && dst_p_c == start_c)
+        {
+            // Do final check
+            if (p.is_fin())
+            {
+                // Print solution
+                const auto result = p.to_string();
+                if (puzzle_results.find(result) == puzzle_results.end())
+                {
+                    puzzle_results.insert(result);
+                    cout << p.to_string();
+                }
+            }
+            return;
+        }
+        if (p.point_can_up(dst_p_r, dst_p_c) &&
+            p.vrt_has_edge(dst_p_r - 1, dst_p_c))
+        {
+            vrt_go_next(p,
+                        start_r, start_c,
+                        dst_p_r - 1, dst_p_c,
+                        dst_p_r - 1, dst_p_c);
+        }
+        else if (p.point_can_down(dst_p_r, dst_p_c) &&
+                 p.vrt_has_edge(dst_p_r, dst_p_c))
+        {
+            vrt_go_next(p,
+                        start_r, start_c,
+                        dst_p_r, dst_p_c,
+                        dst_p_r + 1, dst_p_c);
+        }
+        else if (p.point_can_left(dst_p_r, dst_p_c) &&
+                 p.hrz_has_edge(dst_p_r, dst_p_c - 1) &&
+                 dst_p_c - 1 != h_c)
+        {
+            hrz_go_next(p,
+                        start_r, start_c,
+                        dst_p_r, dst_p_c - 1,
+                        dst_p_r, dst_p_c - 1);
+        }
+        else if (p.point_can_right(dst_p_r, dst_p_c) &&
+                 p.hrz_has_edge(dst_p_r, dst_p_c) &&
+                 dst_p_c != h_c)
+        {
+            hrz_go_next(p,
+                        start_r, start_c,
+                        dst_p_r, dst_p_c,
+                        dst_p_r, dst_p_c + 1);
+        }
+    }
+    else
+    {
+        if (p.point_can_up(dst_p_r, dst_p_c))
+        {
+            go_vrt(p,
+                   start_r, start_c,
+                   dst_p_r - 1, dst_p_c,
+                   dst_p_r - 1, dst_p_c);
+        }
+        if (p.point_can_down(dst_p_r, dst_p_c))
+        {
+            go_vrt(p,
+                   start_r, start_c,
+                   dst_p_r, dst_p_c,
+                   dst_p_r + 1, dst_p_c);
+        }
+        if (p.point_can_left(dst_p_r, dst_p_c) &&
+            dst_p_c - 1 != h_c)
+        {
+            go_hrz(p,
+                   start_r, start_c,
+                   dst_p_r, dst_p_c - 1,
+                   dst_p_r, dst_p_c - 1);
+        }
+        if (p.point_can_right(dst_p_r, dst_p_c) &&
+            dst_p_c != h_c)
+        {
+            go_hrz(p,
+                   start_r, start_c,
+                   dst_p_r, dst_p_c,
+                   dst_p_r, dst_p_c + 1);
+        }
     }
 }

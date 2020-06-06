@@ -196,6 +196,24 @@ public:
         return true;
     }
 
+    bool is_correct()
+    {
+        for (size_t row = 0; row < rows; row++)
+        {
+            for (size_t col = 0; col < cols; col++)
+            {
+                if (lat[row][col] >= 0)
+                {
+                    if (lat[row][col] < lat_edge(row, col))
+                        return false;
+                    if (4 - lat[row][col] < get_lat_banned_edge(row, col))
+                        return false;
+                }
+            }
+        }
+        return true;
+    }
+
     string to_string()
     {
         const auto link = "█";
@@ -207,12 +225,16 @@ public:
             {
                 if (get_conn(row, col) > 0)
                     ss << link;
+                // else if (banned_point[row][col])
+                //     ss << "x";
                 else
                     ss << dot;
                 if (col < cols)
                 {
                     if (hrz_has_edge(row, col))
                         ss << link;
+                    else if (hrz[row][col] == BAN)
+                        ss << "x";
                     else
                         ss << " ";
                 }
@@ -224,6 +246,8 @@ public:
                 {
                     if (vrt_has_edge(row, col))
                         ss << link;
+                    else if (vrt[row][col] == BAN)
+                        ss << "x";
                     else
                         ss << " ";
                     if (col < cols)
