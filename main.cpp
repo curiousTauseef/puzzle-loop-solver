@@ -12,6 +12,8 @@ using namespace std;
 bool heuristic(puzzle &p);
 
 void ban_edge_around_zero(puzzle &p);
+void prelink_around_threes(puzzle &p);
+
 void ban_edge_around_one(puzzle &p);
 void ban_edge_around_two(puzzle &p);
 void ban_edge_around_three(puzzle &p);
@@ -107,6 +109,7 @@ int main(int argc, char **argv)
     }
     // solve puzzle
     ban_edge_around_zero(p);
+    prelink_around_threes(p);
     if (heuristic(p) == false)
     {
         cerr << "Invalid puzzle\n";
@@ -169,6 +172,116 @@ void ban_edge_around_zero(puzzle &p)
     }
 }
 
+void prelink_around_threes(puzzle &p)
+{
+    /**
+     *   . l .
+     *     3
+     * b . l . b
+     *     3
+     *   . l .
+     */
+    for (size_t row = 0; row < p.rows - 1; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 3 && p.lat[row + 1][col] == 3)
+            {
+                p.hrz[row][col] = puzzle::LINKED;
+                p.hrz[row + 1][col] = puzzle::LINKED;
+                p.hrz[row + 2][col] = puzzle::LINKED;
+                if (p.point_can_left(row + 1, col))
+                    p.hrz[row + 1][col - 1] = puzzle::BAN;
+                if (p.point_can_right(row + 1, col + 1))
+                    p.hrz[row + 1][col + 1] = puzzle::BAN;
+            }
+        }
+    }
+    /**
+     *     b
+     * .   .   .
+     * l 3 l 3 l
+     * .   .   .
+     *     b
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols - 1; col++)
+        {
+            if (p.lat[row][col] == 3 && p.lat[row][col + 1] == 3)
+            {
+                p.vrt[row][col] = puzzle::LINKED;
+                p.vrt[row][col + 1] = puzzle::LINKED;
+                p.vrt[row][col + 2] = puzzle::LINKED;
+                if (p.point_can_up(row, col + 1))
+                    p.vrt[row - 1][col + 1] = puzzle::BAN;
+                if (p.point_can_down(row + 1, col + 1))
+                    p.vrt[row + 1][col + 1] = puzzle::BAN;
+            }
+        }
+    }
+    /**
+     *   b
+     * b . l .   .
+     *   l 3
+     *   .   .   .
+     *         3 l
+     *   .   . l . b
+     *           b
+     */
+    for (size_t row = 0; row < p.rows - 1; row++)
+    {
+        for (size_t col = 0; col < p.cols - 1; col++)
+        {
+            if (p.lat[row][col] == 3 && p.lat[row + 1][col + 1] == 3)
+            {
+                p.hrz[row][col] = puzzle::LINKED;
+                p.vrt[row][col] = puzzle::LINKED;
+                p.hrz[row + 2][col + 1] = puzzle::LINKED;
+                p.vrt[row + 1][col + 2] = puzzle::LINKED;
+                if (p.point_can_up(row, col))
+                    p.vrt[row - 1][col] = puzzle::BAN;
+                if (p.point_can_left(row, col))
+                    p.hrz[row][col - 1] = puzzle::BAN;
+                if (p.point_can_down(row + 2, col + 2))
+                    p.vrt[row + 2][col + 2] = puzzle::BAN;
+                if (p.point_can_right(row + 2, col + 2))
+                    p.hrz[row + 2][col + 2] = puzzle::BAN;
+            }
+        }
+    }
+    /**
+     *           b
+     *   .   . l . b
+     *         3 l
+     *   .   .   .
+     *   l 3
+     * b . l .   .
+     *   b
+     */
+    for (size_t row = 0; row < p.rows - 1; row++)
+    {
+        for (size_t col = 0; col < p.cols - 1; col++)
+        {
+            if (p.lat[row][col + 1] == 3 && p.lat[row + 1][col] == 3)
+            {
+                p.hrz[row][col + 1] = puzzle::LINKED;
+                p.vrt[row][col + 2] = puzzle::LINKED;
+                p.hrz[row + 2][col] = puzzle::LINKED;
+                p.vrt[row + 1][col] = puzzle::LINKED;
+                if (p.point_can_up(row, col + 2))
+                    p.vrt[row - 1][col + 2] = puzzle::BAN;
+                if (p.point_can_right(row, col + 2))
+                    p.hrz[row][col + 2] = puzzle::BAN;
+                if (p.point_can_down(row + 2, col))
+                    p.vrt[row + 2][col] = puzzle::BAN;
+                if (p.point_can_left(row + 2, col))
+                    p.hrz[row + 2][col - 1] = puzzle::BAN;
+            }
+        }
+    }
+}
+
 void ban_edge_around_one(puzzle &p)
 {
     /**
@@ -181,7 +294,7 @@ void ban_edge_around_one(puzzle &p)
     {
         for (size_t col = 0; col < p.cols; col++)
         {
-            if (p.lat[row][col] == 1)
+            if (p.lat[row][col] == 1 && p.get_lat_banned_edge(row, col) < 2)
             {
                 if (!p.point_can_up(row, col) &&
                     !p.point_can_left(row, col))
@@ -219,7 +332,7 @@ void ban_edge_around_one(puzzle &p)
     {
         for (size_t col = 0; col < p.cols; col++)
         {
-            if (p.lat[row][col] == 1)
+            if (p.lat[row][col] == 1 && p.get_lat_banned_edge(row, col) != 3)
             {
                 if (p.hrz_has_edge(row, col))
                 {
@@ -248,6 +361,45 @@ void ban_edge_around_one(puzzle &p)
             }
         }
     }
+    /**
+     *   x
+     * - .   .
+     *     1 b
+     *   . b .
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 1 && p.get_lat_banned_edge(row, col) < 2)
+            {
+                if ((p.point_has_edge_up(row, col) || p.point_has_edge_left(row, col)) &&
+                    (!p.point_can_up(row, col) || !p.point_can_left(row, col)))
+                {
+                    p.hrz[row + 1][col] = puzzle::BAN;
+                    p.vrt[row][col + 1] = puzzle::BAN;
+                }
+                if ((p.point_has_edge_up(row, col + 1) || p.point_has_edge_right(row, col + 1)) &&
+                    (!p.point_can_up(row, col + 1) || !p.point_can_right(row, col + 1)))
+                {
+                    p.hrz[row + 1][col] = puzzle::BAN;
+                    p.vrt[row][col] = puzzle::BAN;
+                }
+                if ((p.point_has_edge_down(row + 1, col) || p.point_has_edge_left(row + 1, col)) &&
+                    (!p.point_can_down(row + 1, col) || !p.point_can_left(row + 1, col)))
+                {
+                    p.hrz[row][col] = puzzle::BAN;
+                    p.vrt[row][col + 1] = puzzle::BAN;
+                }
+                if ((p.point_has_edge_down(row + 1, col + 1) || p.point_has_edge_right(row + 1, col + 1)) &&
+                    (!p.point_can_down(row + 1, col + 1) || !p.point_can_right(row + 1, col + 1)))
+                {
+                    p.hrz[row][col] = puzzle::BAN;
+                    p.vrt[row][col] = puzzle::BAN;
+                }
+            }
+        }
+    }
 }
 
 void ban_edge_around_two(puzzle &p)
@@ -261,7 +413,7 @@ void ban_edge_around_two(puzzle &p)
     {
         for (size_t col = 0; col < p.cols; col++)
         {
-            if (p.lat[row][col] == 2)
+            if (p.lat[row][col] == 2 && p.get_lat_banned_edge(row, col) != 2)
             {
                 if (p.hrz_has_edge(row, col) &&
                     p.vrt_has_edge(row, col))
@@ -315,7 +467,7 @@ void ban_edge_around_three(puzzle &p)
     {
         for (size_t col = 0; col < p.cols; col++)
         {
-            if (p.lat[row][col] == 3)
+            if (p.lat[row][col] == 3 && p.get_lat_banned_edge(row, col) != 1)
             {
                 if (p.hrz_has_edge(row, col) &&
                     p.hrz_has_edge(row + 1, col) &&
