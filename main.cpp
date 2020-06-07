@@ -740,6 +740,67 @@ void link_around_two(puzzle &p)
             }
         }
     }
+    /**
+     *       ?
+     *   .   . ?
+     *     2  
+     * ? .   . x
+     *   ?   x
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 2 &&
+                !p.complete_lat(row, col))
+            {
+                if (!p.point_can_up(row, col) && !p.point_can_left(row, col))
+                {
+                    if (!p.point_can_left(row + 1, col) && p.point_can_down(row + 1, col))
+                        p.vrt[row + 1][col] = puzzle::LINKED;
+                    if (p.point_can_left(row + 1, col) && !p.point_can_down(row + 1, col))
+                        p.hrz[row + 1][col - 1] = puzzle::LINKED;
+                    if (!p.point_can_right(row, col + 1) && p.point_can_up(row, col + 1))
+                        p.vrt[row - 1][col + 1] = puzzle::LINKED;
+                    if (p.point_can_right(row, col + 1) && !p.point_can_up(row, col + 1))
+                        p.hrz[row][col + 1] = puzzle::LINKED;
+                }
+                if (!p.point_can_up(row, col + 1) && !p.point_can_right(row, col + 1))
+                {
+                    if (!p.point_can_left(row, col) && p.point_can_up(row, col))
+                        p.vrt[row - 1][col] = puzzle::LINKED;
+                    if (p.point_can_left(row, col) && !p.point_can_up(row, col))
+                        p.hrz[row][col - 1] = puzzle::LINKED;
+                    if (!p.point_can_right(row + 1, col + 1) && p.point_can_down(row + 1, col + 1))
+                        p.vrt[row + 1][col + 1] = puzzle::LINKED;
+                    if (p.point_can_right(row + 1, col + 1) && !p.point_can_down(row + 1, col + 1))
+                        p.hrz[row + 1][col + 1] = puzzle::LINKED;
+                }
+                if (!p.point_can_down(row + 1, col + 1) && !p.point_can_right(row + 1, col + 1))
+                {
+                    if (!p.point_can_right(row, col + 1) && p.point_can_up(row, col + 1))
+                        p.vrt[row - 1][col + 1] = puzzle::LINKED;
+                    if (p.point_can_right(row, col + 1) && !p.point_can_up(row, col + 1))
+                        p.hrz[row][col + 1] = puzzle::LINKED;
+                    if (!p.point_can_left(row + 1, col) && p.point_can_down(row + 1, col))
+                        p.vrt[row + 1][col] = puzzle::LINKED;
+                    if (p.point_can_left(row + 1, col) && !p.point_can_down(row + 1, col))
+                        p.hrz[row + 1][col - 1] = puzzle::LINKED;
+                }
+                if (!p.point_can_down(row + 1, col) && !p.point_can_left(row + 1, col))
+                {
+                    if (!p.point_can_left(row, col) && p.point_can_up(row, col))
+                        p.vrt[row - 1][col] = puzzle::LINKED;
+                    if (p.point_can_left(row, col) && !p.point_can_up(row, col))
+                        p.hrz[row][col - 1] = puzzle::LINKED;
+                    if (!p.point_can_right(row + 1, col + 1) && p.point_can_down(row + 1, col + 1))
+                        p.vrt[row + 1][col + 1] = puzzle::LINKED;
+                    if (p.point_can_right(row + 1, col + 1) && !p.point_can_down(row + 1, col + 1))
+                        p.hrz[row + 1][col + 1] = puzzle::LINKED;
+                }
+            }
+        }
+    }
 }
 
 void link_around_three(puzzle &p)
@@ -1020,6 +1081,122 @@ bool try_draw(puzzle &p)
                     p.vrt[row][col] = puzzle::LINKED;
                     heuristic(p, false);
                 }
+            }
+        }
+    }
+    // around two
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 1; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 2 &&
+                p.lat_edge(row, col) == 0 &&
+                p.get_lat_banned_edge(row, col) == 0)
+            {
+                puzzle np = p;
+                int not_allow[6][4] = {0};
+                np.hrz[row][col] = puzzle::LINKED;
+                np.vrt[row][col] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    not_allow[0][0] = -1;
+                    not_allow[0][1] = -1;
+                    not_allow[0][2] = 1;
+                    not_allow[0][3] = 1;
+                }
+                np = p;
+                np.hrz[row][col] = puzzle::LINKED;
+                np.vrt[row][col + 1] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    not_allow[1][0] = 1;
+                    not_allow[1][1] = -1;
+                    not_allow[1][2] = -1;
+                    not_allow[1][3] = 1;
+                }
+                np = p;
+                np.hrz[row + 1][col] = puzzle::LINKED;
+                np.vrt[row][col + 1] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    not_allow[2][0] = 1;
+                    not_allow[2][1] = 1;
+                    not_allow[2][2] = -1;
+                    not_allow[2][3] = -1;
+                }
+                np = p;
+                np.hrz[row + 1][col] = puzzle::LINKED;
+                np.vrt[row][col] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    not_allow[3][0] = -1;
+                    not_allow[3][1] = 1;
+                    not_allow[3][2] = 1;
+                    not_allow[3][3] = -1;
+                }
+                np = p;
+                np.hrz[row][col] = puzzle::LINKED;
+                np.hrz[row + 1][col] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    not_allow[4][0] = 1;
+                    not_allow[4][1] = -1;
+                    not_allow[4][2] = 1;
+                    not_allow[4][3] = -1;
+                }
+                np = p;
+                np.vrt[row][col] = puzzle::LINKED;
+                np.vrt[row][col + 1] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    not_allow[5][0] = -1;
+                    not_allow[5][1] = 1;
+                    not_allow[5][2] = -1;
+                    not_allow[5][3] = 1;
+                }
+                int no_cnt[4] = {0};
+                int link_cnt[4] = {0};
+                for (size_t i = 0; i < 6; i++)
+                {
+                    for (size_t j = 0; j < 4; j++)
+                    {
+                        no_cnt[j] += (not_allow[i][j] == -1 ? 1 : 0);
+                        link_cnt[j] += (not_allow[i][j] == 1 ? 1 : 0);
+                    }
+                }
+                if (no_cnt[0] == 3)
+                {
+                    p.vrt[row][col] = puzzle::BAN;
+                }
+                if (no_cnt[1] == 3)
+                {
+                    p.hrz[row][col] = puzzle::BAN;
+                }
+                if (no_cnt[2] == 3)
+                {
+                    p.vrt[row][col + 1] = puzzle::BAN;
+                }
+                if (no_cnt[3] == 3)
+                {
+                    p.hrz[row + 1][col] = puzzle::BAN;
+                }
+                if (link_cnt[0] == 3)
+                {
+                    p.vrt[row][col] = puzzle::LINKED;
+                }
+                if (link_cnt[1] == 3)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                }
+                if (link_cnt[2] == 3)
+                {
+                    p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+                if (link_cnt[3] == 3)
+                {
+                    p.hrz[row + 1][col] = puzzle::LINKED;
+                }
+                heuristic(p, false);
             }
         }
     }

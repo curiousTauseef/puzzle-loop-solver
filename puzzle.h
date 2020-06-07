@@ -212,6 +212,7 @@ public:
 
     bool is_correct() // During solving
     {
+        // check lattice
         for (size_t row = 0; row < rows; row++)
         {
             for (size_t col = 0; col < cols; col++)
@@ -225,6 +226,7 @@ public:
                 }
             }
         }
+        // check point
         for (size_t row = 0; row <= rows; row++)
         {
             for (size_t col = 0; col <= cols; col++)
@@ -233,6 +235,15 @@ public:
                 {
                     return false;
                 }
+                // if (get_conn(row, col) == 1)
+                // {
+                //     size_t ban_edges = (point_can_up(row, col) ? 0 : 1) +
+                //                        (point_can_left(row, col) ? 0 : 1) +
+                //                        (point_can_down(row, col) ? 0 : 1) +
+                //                        (point_can_right(row, col) ? 0 : 1);
+                //     if (ban_edges >= 3)
+                //         return false;
+                // }
             }
         }
         if (is_multiple_loops())
