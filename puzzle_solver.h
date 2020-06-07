@@ -1212,6 +1212,19 @@ bool puzzle_solver::try_draw(puzzle &p)
 
 void puzzle_solver::DFS(puzzle &p)
 {
+    // Heuristic done
+    if (p.is_fin() && p.is_correct())
+    {
+        // Print solution
+        const auto result = p.to_string();
+        if (puzzle_results.find(result) == puzzle_results.end())
+        {
+            puzzle_results.insert(result);
+            cout << result;
+            *os << result;
+        }
+        return;
+    }
     // Start with one line
     for (size_t row = 0; row <= p.rows; row++)
     {
