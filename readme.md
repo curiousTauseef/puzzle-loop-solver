@@ -3,7 +3,7 @@
 ## Usage
 
 ```
-puzzle-loop-solver <puzzle/file>
+puzzle-loop-solver <puzzle file> <puzzle solution file>
 ```
 
 ## Puzzle Format
