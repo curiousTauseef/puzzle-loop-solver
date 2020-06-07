@@ -248,6 +248,8 @@ public:
         }
         if (is_multiple_loops())
             return false;
+        if (!is_even_line_out())
+            return false;
         return true;
     }
 
@@ -326,6 +328,80 @@ public:
             }
         }
         return false;
+    }
+
+    bool is_even_line_out()
+    {
+        set<pair<int, int>> done;
+        for (size_t row = 0; row <= rows; row++)
+        {
+            for (size_t col = 0; col <= cols; col++)
+            {
+                // New point with 0 or 1 conn in one island
+                if (get_conn(row, col) <= 1 && done.find({row, col}) == done.end())
+                {
+                    // Mark one point in this island (BFS)
+                    set<pair<int, int>> island;
+                    queue<pair<int, int>> todo;
+                    size_t thread_cnt = 0;
+                    todo.push({row, col});
+                    do
+                    {
+                        const auto now = todo.front();
+                        todo.pop();
+                        if (island.find(now) != island.end())
+                        {
+                            continue;
+                        }
+                        island.insert(now);
+                        if (get_conn(now.first, now.second) == 1) // a "thread"
+                        {
+                            thread_cnt++;
+                        }
+                        if (point_can_up(now.first, now.second) &&
+                            !point_has_edge_up(now.first, now.second))
+                        {
+                            if (island.find({now.first - 1, now.second}) == island.end() &&
+                                get_conn(now.first - 1, now.second) < 2)
+                            {
+                                todo.push({now.first - 1, now.second});
+                            }
+                        }
+                        if (point_can_down(now.first, now.second) &&
+                            !point_has_edge_down(now.first, now.second))
+                        {
+                            if (island.find({now.first + 1, now.second}) == island.end() &&
+                                get_conn(now.first + 1, now.second) < 2)
+                            {
+                                todo.push({now.first + 1, now.second});
+                            }
+                        }
+                        if (point_can_left(now.first, now.second) &&
+                            !point_has_edge_left(now.first, now.second))
+                        {
+                            if (island.find({now.first, now.second - 1}) == island.end() &&
+                                get_conn(now.first, now.second - 1) < 2)
+                            {
+                                todo.push({now.first, now.second - 1});
+                            }
+                        }
+                        if (point_can_right(now.first, now.second) &&
+                            !point_has_edge_right(now.first, now.second))
+                        {
+                            if (island.find({now.first, now.second + 1}) == island.end() &&
+                                get_conn(now.first, now.second + 1) < 2)
+                            {
+                                todo.push({now.first, now.second + 1});
+                            }
+                        }
+                    } while (!todo.empty());
+                    if (thread_cnt % 2)
+                        return false;
+                    done.insert(island.begin(), island.end());
+                }
+            }
+        }
+        return true;
     }
 
     string to_string()
