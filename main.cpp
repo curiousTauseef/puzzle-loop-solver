@@ -119,9 +119,9 @@ int main(int argc, char **argv)
 
 bool heuristic(puzzle &p)
 {
+    string last_step = p.to_string();
     while (true)
     {
-        const string last_step = p.to_string();
         ban_edge_around_one(p);
         ban_edge_around_two(p);
         ban_edge_around_three(p);
@@ -131,14 +131,18 @@ bool heuristic(puzzle &p)
         link_around_three(p);
         link_around_two(p);
         link_around_one(p);
-        const string curr_step = p.to_string();
         if (!p.is_correct())
         {
             return false;
         }
+        const string curr_step = p.to_string();
         if (last_step.compare(curr_step) == 0)
         {
             return true;
+        }
+        else
+        {
+            last_step = curr_step;
         }
     }
 }
