@@ -42,14 +42,21 @@ void draw_line(puzzle p,
                const int &dst_p_r, const int &dst_p_c);
 
 unordered_set<string> puzzle_results;
+ofstream of;
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc < 2)
     {
         cerr << "No puzzle file\n";
         return -1;
     }
+    string output_file_name = "solution.txt";
+    if (argc == 3)
+    {
+        output_file_name = argv[2];
+    }
+    of.open(output_file_name);
 
     puzzle p;
     // read puzzle file
@@ -162,10 +169,6 @@ bool heuristic(puzzle &p, bool ahead)
                         continue;
                     }
                 }
-            }
-            if (ahead == true) // TODO: remove me
-            {
-                cout << p.to_string();
             }
             // look head not useful
             // return to DFS
@@ -1253,6 +1256,7 @@ void go_with_line(puzzle &p,
                 {
                     puzzle_results.insert(result);
                     cout << result;
+                    of << result;
                 }
             }
             return;
@@ -1398,6 +1402,7 @@ void draw_line(puzzle p,
             {
                 puzzle_results.insert(result);
                 cout << result;
+                of << result;
             }
         }
         return;
