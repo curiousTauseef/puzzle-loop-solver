@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <set>
 
 using namespace std;
 
@@ -193,12 +194,23 @@ public:
                     return false;
             }
         }
+        for (size_t row = 0; row <= rows; row++)
+        {
+            for (size_t col = 0; col <= cols; col++)
+            {
+                if (get_conn(row, col) == 1 || get_conn(row, col) == 3)
+                {
+                    return false;
+                }
+            }
+        }
+        if (is_multiple_loops())
+            return false;
         return true;
     }
 
-    bool is_correct()
+    bool is_correct() // During solving
     {
-        // FIXME: check multiple loops
         for (size_t row = 0; row < rows; row++)
         {
             for (size_t col = 0; col < cols; col++)
@@ -213,6 +225,78 @@ public:
             }
         }
         return true;
+    }
+
+    bool is_multiple_loops()
+    {
+        for (size_t row = 0; row <= rows; row++)
+        {
+            for (size_t col = 0; col <= cols; col++)
+            {
+                if (get_conn(row, col) == 2)
+                {
+                    int start_r = row;
+                    int start_c = col;
+                    int curr_r = row;
+                    int curr_c = col;
+                    set<pair<int, int>> point_set;
+                    // Mark one loop
+                    point_set.insert({start_r, start_c});
+                    do
+                    {
+                        if (point_has_edge_up(curr_r, curr_c))
+                        {
+                            if (point_set.find({curr_r - 1, curr_c}) == point_set.end())
+                            {
+                                point_set.insert({curr_r - 1, curr_c});
+                                curr_r--;
+                                continue;
+                            }
+                        }
+                        if (point_has_edge_down(curr_r, curr_c))
+                        {
+                            if (point_set.find({curr_r + 1, curr_c}) == point_set.end())
+                            {
+                                point_set.insert({curr_r + 1, curr_c});
+                                curr_r++;
+                                continue;
+                            }
+                        }
+                        if (point_has_edge_left(curr_r, curr_c))
+                        {
+                            if (point_set.find({curr_r, curr_c - 1}) == point_set.end())
+                            {
+                                point_set.insert({curr_r, curr_c - 1});
+                                curr_c--;
+                                continue;
+                            }
+                        }
+                        if (point_has_edge_right(curr_r, curr_c))
+                        {
+                            if (point_set.find({curr_r, curr_c + 1}) == point_set.end())
+                            {
+                                point_set.insert({curr_r, curr_c + 1});
+                                curr_c++;
+                                continue;
+                            }
+                        }
+                        break;
+                    } while (true);
+                    // If any other loops
+                    for (size_t row = 0; row <= rows; row++)
+                    {
+                        for (size_t col = 0; col <= cols; col++)
+                        {
+                            if (get_conn(row, col) == 2 && point_set.find({row, col}) == point_set.end())
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
     }
 
     string to_string()
