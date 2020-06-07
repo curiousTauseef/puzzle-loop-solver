@@ -9,7 +9,7 @@
 
 using namespace std;
 
-bool heuristic(puzzle &p);
+bool heuristic(puzzle &p, bool head = true);
 
 void ban_edge_around_zero(puzzle &p);
 void prelink_around_threes(puzzle &p);
@@ -24,6 +24,8 @@ void link_around_one(puzzle &p);
 void link_around_two(puzzle &p);
 void link_around_three(puzzle &p);
 void link_around_point(puzzle &p);
+
+bool try_draw(puzzle &p);
 
 void DFS(puzzle &p);
 void go_with_line(puzzle &p,
@@ -120,7 +122,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-bool heuristic(puzzle &p)
+bool heuristic(puzzle &p, bool ahead)
 {
     string last_step = p.to_string();
     while (true)
@@ -138,12 +140,38 @@ bool heuristic(puzzle &p)
         {
             return false;
         }
-        const string curr_step = p.to_string();
+        string curr_step = p.to_string();
+        // run out of normal methods
         if (last_step.compare(curr_step) == 0)
         {
+            // look ahead
+            if (ahead == true)
+            {
+                if (try_draw(p) == false)
+                {
+                    return false;
+                }
+                else
+                {
+                    // look ahead make sense
+                    // try normal methods again
+                    curr_step = p.to_string();
+                    if (last_step.compare(curr_step) != 0)
+                    {
+                        last_step = curr_step;
+                        continue;
+                    }
+                }
+            }
+            if (ahead == true) // TODO: remove me
+            {
+                cout << p.to_string();
+            }
+            // look head not useful
+            // return to DFS
             return true;
         }
-        else
+        else // normal method make sense
         {
             last_step = curr_step;
         }
@@ -915,6 +943,87 @@ void link_around_point(puzzle &p)
             }
         }
     }
+}
+
+bool try_draw(puzzle &p)
+{
+    // horizontal
+    for (size_t row = 0; row <= p.rows; row++)
+    {
+        for (size_t col = 1; col < p.cols; col++)
+        {
+            if (p.hrz[row][col] == puzzle::NOT)
+            {
+                puzzle np = p;
+                bool no_link = false;
+                bool no_ban = false;
+                np.hrz[row][col] = puzzle::BAN;
+                if (heuristic(np, false) == false)
+                {
+                    no_ban = true;
+                }
+                np = p;
+                np.hrz[row][col] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    no_link = true;
+                }
+                if (no_link && no_ban)
+                {
+                    return false;
+                }
+                else if (no_link)
+                {
+                    p.hrz[row][col] = puzzle::BAN;
+                    heuristic(p, false);
+                }
+                else if (no_ban)
+                {
+                    p.hrz[row][col] = puzzle::LINKED;
+                    heuristic(p, false);
+                }
+            }
+        }
+    }
+    // vertical
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 1; col <= p.cols; col++)
+        {
+            if (p.vrt[row][col] == puzzle::NOT)
+            {
+                puzzle np = p;
+                bool no_link = false;
+                bool no_ban = false;
+                np.vrt[row][col] = puzzle::BAN;
+                if (heuristic(np, false) == false)
+                {
+                    no_ban = true;
+                }
+                np = p;
+                np.vrt[row][col] = puzzle::LINKED;
+                if (heuristic(np, false) == false)
+                {
+                    no_link = true;
+                }
+                if (no_link && no_ban)
+                {
+                    return false;
+                }
+                else if (no_link)
+                {
+                    p.vrt[row][col] = puzzle::BAN;
+                    heuristic(p, false);
+                }
+                else if (no_ban)
+                {
+                    p.vrt[row][col] = puzzle::LINKED;
+                    heuristic(p, false);
+                }
+            }
+        }
+    }
+    return true;
 }
 
 void DFS(puzzle &p)
