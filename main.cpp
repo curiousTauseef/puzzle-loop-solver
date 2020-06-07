@@ -24,24 +24,18 @@ void link_around_three(puzzle &p);
 void link_around_point(puzzle &p);
 
 void DFS(puzzle &p);
-void go_vrt(puzzle p,
-            const int &start_r, const int &start_c,
-            const int &v_r, const int &v_c,
-            const int &dst_p_r, const int &dst_p_c);
-void go_hrz(puzzle p, const int &start_r, const int &start_c,
-            const int &h_r, const int &h_c,
-            const int &dst_p_r, const int &dst_p_c);
-void go_next(puzzle &p,
-             const int &start_r, const int &start_c,
-             const int &dst_p_r, const int &dst_p_c);
-void vrt_go_next(puzzle &p,
-                 const int &start_r, const int &start_c,
-                 const int &v_r, const int &v_c,
-                 const int &dst_p_r, const int &dst_p_c);
-void hrz_go_next(puzzle &p,
-                 const int &start_r, const int &start_c,
-                 const int &h_r, const int &h_c,
-                 const int &dst_p_r, const int &dst_p_c);
+void go_with_line(puzzle &p,
+                  const int &start_r, const int &start_c,
+                  int src_p_r, int src_p_c,
+                  int dst_p_r, int dst_p_c);
+void go_without_line(puzzle &p,
+                     const int &start_r, const int &start_c,
+                     const int &src_p_r, const int &src_p_c,
+                     const int &dst_p_r, const int &dst_p_c);
+void draw_line(puzzle p,
+               const int &start_r, const int &start_c,
+               const int &src_p_r, const int &src_p_c,
+               const int &dst_p_r, const int &dst_p_c);
 
 unordered_set<string> puzzle_results;
 
@@ -139,7 +133,9 @@ bool heuristic(puzzle &p)
         link_around_one(p);
         const string curr_step = p.to_string();
         if (!p.is_correct())
+        {
             return false;
+        }
         if (last_step.compare(curr_step) == 0)
         {
             return true;
@@ -720,7 +716,7 @@ void DFS(puzzle &p)
         {
             if (!p.banned_point[row][col] && p.get_conn(row, col) == 1)
             {
-                go_next(p, row, col, row, col);
+                go_without_line(p, row, col, row, col, row, col);
                 return;
             }
         }
@@ -732,7 +728,7 @@ void DFS(puzzle &p)
         // Optimized
         for (size_t col = 1; col <= p.cols; col += 2)
         {
-            go_next(p, row, col, row, col);
+            go_without_line(p, row, col, row, col, row, col);
             // set point banned
             p.banned_point[row][col - 1] = true;
             p.banned_point[row][col] = true;
@@ -742,293 +738,181 @@ void DFS(puzzle &p)
     }
 }
 
-void go_vrt(puzzle p,
-            const int &start_r, const int &start_c,
-            const int &v_r, const int &v_c,
-            const int &dst_p_r, const int &dst_p_c)
+void go_with_line(puzzle &p,
+                  const int &start_r, const int &start_c,
+                  int src_p_r, int src_p_c,
+                  int dst_p_r, int dst_p_c)
 {
-    // Draw line
-    p.vrt[v_r][v_c] = puzzle::LINKED;
-    // Solved
-    if (dst_p_r == start_r && dst_p_c == start_c)
+    while (p.get_conn(dst_p_r, dst_p_c) == 2) // with line
     {
-        // Do final check
-        if (p.is_fin())
-        {
-            // Print solution
-            const auto result = p.to_string();
-            if (puzzle_results.find(result) == puzzle_results.end())
-            {
-                puzzle_results.insert(result);
-                cout << p.to_string();
-            }
-        }
-        return;
-    }
-    // Check connectivity
-    if (p.get_conn(dst_p_r, dst_p_c) > 2)
-        return;
-    // Check lattice
-    if (!p.vrt_sat(v_r, v_c))
-        return;
-    // Do heuristic
-    if (heuristic(p) == false)
-        return;
-    // Go next point
-    vrt_go_next(p, start_r, start_c, v_r, v_c, dst_p_r, dst_p_c);
-}
-
-void go_hrz(puzzle p, const int &start_r, const int &start_c,
-            const int &h_r, const int &h_c,
-            const int &dst_p_r, const int &dst_p_c)
-{
-    // Draw line
-    p.hrz[h_r][h_c] = puzzle::LINKED;
-    // Solved
-    if (dst_p_r == start_r && dst_p_c == start_c)
-    {
-        // Do final check
-        if (p.is_fin())
-        {
-            // Print solution
-            const auto result = p.to_string();
-            if (puzzle_results.find(result) == puzzle_results.end())
-            {
-                puzzle_results.insert(result);
-                cout << p.to_string();
-            }
-        }
-        return;
-    }
-    // Check connectivity
-    if (p.get_conn(dst_p_r, dst_p_c) > 2)
-        return;
-    // Check lattice
-    if (!p.hrz_sat(h_r, h_c))
-        return;
-    // Do heuristic
-    if (heuristic(p) == false)
-        return;
-    // Go next point
-    hrz_go_next(p, start_r, start_c, h_r, h_c, dst_p_r, dst_p_c);
-}
-
-void go_next(puzzle &p,
-             const int &start_r, const int &start_c,
-             const int &dst_p_r, const int &dst_p_c)
-{
-    if (p.point_can_up(dst_p_r, dst_p_c))
-    {
-        go_vrt(p,
-               start_r, start_c,
-               dst_p_r - 1, dst_p_c,
-               dst_p_r - 1, dst_p_c);
-    }
-    if (p.point_can_down(dst_p_r, dst_p_c))
-    {
-        go_vrt(p,
-               start_r, start_c,
-               dst_p_r, dst_p_c,
-               dst_p_r + 1, dst_p_c);
-    }
-    if (p.point_can_left(dst_p_r, dst_p_c))
-    {
-        go_hrz(p,
-               start_r, start_c,
-               dst_p_r, dst_p_c - 1,
-               dst_p_r, dst_p_c - 1);
-    }
-    if (p.point_can_right(dst_p_r, dst_p_c))
-    {
-        go_hrz(p,
-               start_r, start_c,
-               dst_p_r, dst_p_c,
-               dst_p_r, dst_p_c + 1);
-    }
-}
-
-void vrt_go_next(puzzle &p,
-                 const int &start_r, const int &start_c,
-                 const int &v_r, const int &v_c,
-                 const int &dst_p_r, const int &dst_p_c)
-{
-    if (p.get_conn(dst_p_r, dst_p_c) == 2)
-    {
-        // Solved
+        // If solved
         if (dst_p_r == start_r && dst_p_c == start_c)
         {
             // Do final check
-            if (p.is_fin())
+            if (p.is_fin() && p.is_correct())
             {
                 // Print solution
                 const auto result = p.to_string();
                 if (puzzle_results.find(result) == puzzle_results.end())
                 {
                     puzzle_results.insert(result);
-                    cout << p.to_string();
+                    cout << result;
                 }
             }
             return;
         }
+        // one step
         if (p.point_can_up(dst_p_r, dst_p_c) &&
             p.vrt_has_edge(dst_p_r - 1, dst_p_c) &&
-            dst_p_r - 1 != v_r)
+            dst_p_r - 1 != src_p_r)
         {
-            vrt_go_next(p,
-                        start_r, start_c,
-                        dst_p_r - 1, dst_p_c,
-                        dst_p_r - 1, dst_p_c);
+            src_p_r = dst_p_r;
+            src_p_c = dst_p_c;
+            --dst_p_r;
         }
         else if (p.point_can_down(dst_p_r, dst_p_c) &&
                  p.vrt_has_edge(dst_p_r, dst_p_c) &&
-                 dst_p_r != v_r)
+                 dst_p_r + 1 != src_p_r)
         {
-            vrt_go_next(p,
-                        start_r, start_c,
-                        dst_p_r, dst_p_c,
-                        dst_p_r + 1, dst_p_c);
-        }
-        else if (p.point_can_left(dst_p_r, dst_p_c) &&
-                 p.hrz_has_edge(dst_p_r, dst_p_c - 1))
-        {
-            hrz_go_next(p,
-                        start_r, start_c,
-                        dst_p_r, dst_p_c - 1,
-                        dst_p_r, dst_p_c - 1);
-        }
-        else if (p.point_can_right(dst_p_r, dst_p_c) &&
-                 p.hrz_has_edge(dst_p_r, dst_p_c))
-        {
-            hrz_go_next(p,
-                        start_r, start_c,
-                        dst_p_r, dst_p_c,
-                        dst_p_r, dst_p_c + 1);
-        }
-    }
-    else
-    {
-        if (p.point_can_up(dst_p_r, dst_p_c) &&
-            dst_p_r - 1 != v_r)
-        {
-            go_vrt(p,
-                   start_r, start_c,
-                   dst_p_r - 1, dst_p_c,
-                   dst_p_r - 1, dst_p_c);
-        }
-        if (p.point_can_down(dst_p_r, dst_p_c) &&
-            dst_p_r != v_r)
-        {
-            go_vrt(p,
-                   start_r, start_c,
-                   dst_p_r, dst_p_c,
-                   dst_p_r + 1, dst_p_c);
-        }
-        if (p.point_can_left(dst_p_r, dst_p_c))
-        {
-            go_hrz(p,
-                   start_r, start_c,
-                   dst_p_r, dst_p_c - 1,
-                   dst_p_r, dst_p_c - 1);
-        }
-        if (p.point_can_right(dst_p_r, dst_p_c))
-        {
-            go_hrz(p,
-                   start_r, start_c,
-                   dst_p_r, dst_p_c,
-                   dst_p_r, dst_p_c + 1);
-        }
-    }
-}
-
-void hrz_go_next(puzzle &p,
-                 const int &start_r, const int &start_c,
-                 const int &h_r, const int &h_c,
-                 const int &dst_p_r, const int &dst_p_c)
-{
-    if (p.get_conn(dst_p_r, dst_p_c) == 2)
-    {
-        // Solved
-        if (dst_p_r == start_r && dst_p_c == start_c)
-        {
-            // Do final check
-            if (p.is_fin())
-            {
-                // Print solution
-                const auto result = p.to_string();
-                if (puzzle_results.find(result) == puzzle_results.end())
-                {
-                    puzzle_results.insert(result);
-                    cout << p.to_string();
-                }
-            }
-            return;
-        }
-        if (p.point_can_up(dst_p_r, dst_p_c) &&
-            p.vrt_has_edge(dst_p_r - 1, dst_p_c))
-        {
-            vrt_go_next(p,
-                        start_r, start_c,
-                        dst_p_r - 1, dst_p_c,
-                        dst_p_r - 1, dst_p_c);
-        }
-        else if (p.point_can_down(dst_p_r, dst_p_c) &&
-                 p.vrt_has_edge(dst_p_r, dst_p_c))
-        {
-            vrt_go_next(p,
-                        start_r, start_c,
-                        dst_p_r, dst_p_c,
-                        dst_p_r + 1, dst_p_c);
+            src_p_r = dst_p_r;
+            src_p_c = dst_p_c;
+            ++dst_p_r;
         }
         else if (p.point_can_left(dst_p_r, dst_p_c) &&
                  p.hrz_has_edge(dst_p_r, dst_p_c - 1) &&
-                 dst_p_c - 1 != h_c)
+                 dst_p_c - 1 != src_p_c)
         {
-            hrz_go_next(p,
-                        start_r, start_c,
-                        dst_p_r, dst_p_c - 1,
-                        dst_p_r, dst_p_c - 1);
+            src_p_r = dst_p_r;
+            src_p_c = dst_p_c;
+            --dst_p_c;
         }
         else if (p.point_can_right(dst_p_r, dst_p_c) &&
                  p.hrz_has_edge(dst_p_r, dst_p_c) &&
-                 dst_p_c != h_c)
+                 dst_p_c + 1 != src_p_c)
         {
-            hrz_go_next(p,
-                        start_r, start_c,
-                        dst_p_r, dst_p_c,
-                        dst_p_r, dst_p_c + 1);
+            src_p_r = dst_p_r;
+            src_p_c = dst_p_c;
+            ++dst_p_c;
         }
     }
-    else
+    // without line
+    go_without_line(p,
+                    start_r, start_c,
+                    src_p_r, src_p_c,
+                    dst_p_r, dst_p_c);
+}
+
+void go_without_line(puzzle &p,
+                     const int &start_r, const int &start_c,
+                     const int &src_p_r, const int &src_p_c,
+                     const int &dst_p_r, const int &dst_p_c)
+{
+    if (p.point_can_up(dst_p_r, dst_p_c) &&
+        p.vrt[dst_p_r - 1][dst_p_c] == puzzle::NOT) // try draw up
     {
-        if (p.point_can_up(dst_p_r, dst_p_c))
+        draw_line(p,
+                  start_r, start_c,
+                  dst_p_r, dst_p_c,
+                  dst_p_r - 1, dst_p_c);
+    }
+    if (p.point_can_down(dst_p_r, dst_p_c) &&
+        p.vrt[dst_p_r][dst_p_c] == puzzle::NOT) // try draw down
+    {
+        draw_line(p,
+                  start_r, start_c,
+                  dst_p_r, dst_p_c,
+                  dst_p_r + 1, dst_p_c);
+    }
+    if (p.point_can_left(dst_p_r, dst_p_c) &&
+        p.hrz[dst_p_r][dst_p_c - 1] == puzzle::NOT) // try draw left
+    {
+        draw_line(p,
+                  start_r, start_c,
+                  dst_p_r, dst_p_c,
+                  dst_p_r, dst_p_c - 1);
+    }
+    if (p.point_can_right(dst_p_r, dst_p_c) &&
+        p.hrz[dst_p_r][dst_p_c] == puzzle::NOT) // try draw right
+    {
+        draw_line(p,
+                  start_r, start_c,
+                  dst_p_r, dst_p_c,
+                  dst_p_r, dst_p_c + 1);
+    }
+}
+
+void draw_line(puzzle p,
+               const int &start_r, const int &start_c,
+               const int &src_p_r, const int &src_p_c,
+               const int &dst_p_r, const int &dst_p_c)
+{
+    if (src_p_r == dst_p_r) // previous go horizontally
+    {
+        int h_r, h_c;
+        if (src_p_c > dst_p_c) // previous go left
         {
-            go_vrt(p,
-                   start_r, start_c,
-                   dst_p_r - 1, dst_p_c,
-                   dst_p_r - 1, dst_p_c);
+            h_r = dst_p_r;
+            h_c = dst_p_c;
         }
-        if (p.point_can_down(dst_p_r, dst_p_c))
+        else // previous go right
         {
-            go_vrt(p,
-                   start_r, start_c,
-                   dst_p_r, dst_p_c,
-                   dst_p_r + 1, dst_p_c);
+            h_r = src_p_r;
+            h_c = src_p_c;
         }
-        if (p.point_can_left(dst_p_r, dst_p_c) &&
-            dst_p_c - 1 != h_c)
+        // Draw line
+        p.hrz[h_r][h_c] = puzzle::LINKED;
+        // Check lattice
+        if (!p.hrz_sat(h_r, h_c))
+            return;
+    }
+    else // previous go vertically
+    {
+        int v_r, v_c;
+        if (src_p_r > dst_p_r) // previous go up
         {
-            go_hrz(p,
-                   start_r, start_c,
-                   dst_p_r, dst_p_c - 1,
-                   dst_p_r, dst_p_c - 1);
+            v_r = dst_p_r;
+            v_c = dst_p_c;
         }
-        if (p.point_can_right(dst_p_r, dst_p_c) &&
-            dst_p_c != h_c)
+        else // previous go down
         {
-            go_hrz(p,
-                   start_r, start_c,
-                   dst_p_r, dst_p_c,
-                   dst_p_r, dst_p_c + 1);
+            v_r = src_p_r;
+            v_c = src_p_c;
         }
+        // Draw line
+        p.vrt[v_r][v_c] = puzzle::LINKED;
+        // Check lattice
+        if (!p.vrt_sat(v_r, v_c))
+            return;
+    }
+    // Check connectivity
+    if (p.get_conn(dst_p_r, dst_p_c) > 2 || p.get_conn(dst_p_r, dst_p_c) == 0)
+        return;
+    // Do heuristic
+    if (heuristic(p) == false)
+        return;
+    // If solved
+    if (dst_p_r == start_r && dst_p_c == start_c)
+    {
+        // Do final check
+        if (p.is_fin() && p.is_correct())
+        {
+            // Print solution
+            const auto result = p.to_string();
+            if (puzzle_results.find(result) == puzzle_results.end())
+            {
+                puzzle_results.insert(result);
+                cout << result;
+            }
+        }
+        return;
+    }
+    // Go next point
+    if (p.get_conn(dst_p_r, dst_p_c) == 2)
+    {
+        go_with_line(p, start_r, start_c, src_p_r, src_p_c, dst_p_r, dst_p_c);
+    }
+    else // 1
+    {
+        go_without_line(p, start_r, start_c, src_p_r, src_p_c, dst_p_r, dst_p_c);
     }
 }
