@@ -614,7 +614,7 @@ void link_around_three(puzzle &p)
     {
         for (size_t col = 0; col < p.cols; col++)
         {
-            if (p.lat[row][col] == 3)
+            if (p.lat[row][col] == 3 && !p.complete_lat(row, col))
             {
                 if (!p.point_can_up(row, col) &&
                     !p.point_can_left(row, col))
@@ -639,6 +639,60 @@ void link_around_three(puzzle &p)
                 {
                     p.hrz[row + 1][col] = puzzle::LINKED;
                     p.vrt[row][col + 1] = puzzle::LINKED;
+                }
+            }
+        }
+    }
+    /**
+     * - .   .
+     *     3 l
+     *   . l .
+     */
+    for (size_t row = 0; row < p.rows; row++)
+    {
+        for (size_t col = 0; col < p.cols; col++)
+        {
+            if (p.lat[row][col] == 3 && !p.complete_lat(row, col))
+            {
+                if (p.point_has_edge_up(row, col) ||
+                    p.point_has_edge_left(row, col))
+                {
+                    if (p.hrz[row + 1][col] == puzzle::NOT &&
+                        p.vrt[row][col + 1] == puzzle::NOT)
+                    {
+                        p.hrz[row + 1][col] = puzzle::LINKED;
+                        p.vrt[row][col + 1] = puzzle::LINKED;
+                    }
+                }
+                if (p.point_has_edge_up(row, col + 1) ||
+                    p.point_has_edge_right(row, col + 1))
+                {
+                    if (p.hrz[row + 1][col] == puzzle::NOT &&
+                        p.vrt[row][col] == puzzle::NOT)
+                    {
+                        p.hrz[row + 1][col] = puzzle::LINKED;
+                        p.vrt[row][col] = puzzle::LINKED;
+                    }
+                }
+                if (p.point_has_edge_down(row + 1, col) ||
+                    p.point_has_edge_left(row + 1, col))
+                {
+                    if (p.hrz[row][col] == puzzle::NOT &&
+                        p.vrt[row][col + 1] == puzzle::NOT)
+                    {
+                        p.hrz[row][col] = puzzle::LINKED;
+                        p.vrt[row][col + 1] = puzzle::LINKED;
+                    }
+                }
+                if (p.point_has_edge_down(row + 1, col + 1) ||
+                    p.point_has_edge_right(row + 1, col + 1))
+                {
+                    if (p.hrz[row][col] == puzzle::NOT &&
+                        p.vrt[row][col] == puzzle::NOT)
+                    {
+                        p.hrz[row][col] = puzzle::LINKED;
+                        p.vrt[row][col] = puzzle::LINKED;
+                    }
                 }
             }
         }

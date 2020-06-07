@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <set>
+#include <queue>
 
 using namespace std;
 
@@ -224,79 +225,96 @@ public:
                 }
             }
         }
+        for (size_t row = 0; row <= rows; row++)
+        {
+            for (size_t col = 0; col <= cols; col++)
+            {
+                if (get_conn(row, col) == 3)
+                {
+                    return false;
+                }
+            }
+        }
+        if (is_multiple_loops())
+            return false;
         return true;
     }
 
     bool is_multiple_loops()
     {
+        set<pair<int, int>> done;
+        size_t loops = 0;
+        size_t lines = 0;
         for (size_t row = 0; row <= rows; row++)
         {
             for (size_t col = 0; col <= cols; col++)
             {
-                if (get_conn(row, col) == 2)
+                // New point with 2 conn
+                // Maybe in a loop
+                if (get_conn(row, col) == 2 && done.find({row, col}) == done.end())
                 {
-                    int start_r = row;
-                    int start_c = col;
-                    int curr_r = row;
-                    int curr_c = col;
-                    set<pair<int, int>> point_set;
-                    // Mark one loop
-                    point_set.insert({start_r, start_c});
+                    // Mark one loop or line (BFS)
+                    bool is_line = false;
+                    queue<pair<int, int>> todo;
+                    todo.push({row, col});
                     do
                     {
-                        if (point_has_edge_up(curr_r, curr_c))
+                        const auto now = todo.front();
+                        todo.pop();
+                        if (done.find(now) != done.end())
                         {
-                            if (point_set.find({curr_r - 1, curr_c}) == point_set.end())
+                            continue;
+                        }
+                        done.insert(now);
+                        if (get_conn(now.first, now.second) == 1) // is a line
+                        {
+                            is_line = true;
+                        }
+                        if (point_has_edge_up(now.first, now.second))
+                        {
+                            if (done.find({now.first - 1, now.second}) == done.end())
                             {
-                                point_set.insert({curr_r - 1, curr_c});
-                                curr_r--;
-                                continue;
+                                todo.push({now.first - 1, now.second});
                             }
                         }
-                        if (point_has_edge_down(curr_r, curr_c))
+                        if (point_has_edge_down(now.first, now.second))
                         {
-                            if (point_set.find({curr_r + 1, curr_c}) == point_set.end())
+                            if (done.find({now.first + 1, now.second}) == done.end())
                             {
-                                point_set.insert({curr_r + 1, curr_c});
-                                curr_r++;
-                                continue;
+                                todo.push({now.first + 1, now.second});
                             }
                         }
-                        if (point_has_edge_left(curr_r, curr_c))
+                        if (point_has_edge_left(now.first, now.second))
                         {
-                            if (point_set.find({curr_r, curr_c - 1}) == point_set.end())
+                            if (done.find({now.first, now.second - 1}) == done.end())
                             {
-                                point_set.insert({curr_r, curr_c - 1});
-                                curr_c--;
-                                continue;
+                                todo.push({now.first, now.second - 1});
                             }
                         }
-                        if (point_has_edge_right(curr_r, curr_c))
+                        if (point_has_edge_right(now.first, now.second))
                         {
-                            if (point_set.find({curr_r, curr_c + 1}) == point_set.end())
+                            if (done.find({now.first, now.second + 1}) == done.end())
                             {
-                                point_set.insert({curr_r, curr_c + 1});
-                                curr_c++;
-                                continue;
+                                todo.push({now.first, now.second + 1});
                             }
                         }
-                        break;
-                    } while (true);
-                    // If any other loops
-                    for (size_t row = 0; row <= rows; row++)
+                    } while (!todo.empty());
+                    if (is_line)
                     {
-                        for (size_t col = 0; col <= cols; col++)
-                        {
-                            if (get_conn(row, col) == 2 && point_set.find({row, col}) == point_set.end())
-                            {
-                                return true;
-                            }
-                        }
+                        lines++;
                     }
-                    return false;
+                    else
+                    {
+                        loops++;
+                    }
+                    if (loops > 1)
+                        return true;
+                    if (loops == 1 && lines > 0)
+                        return true;
                 }
             }
         }
+        return false;
     }
 
     string to_string()
