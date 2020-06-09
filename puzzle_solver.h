@@ -129,6 +129,18 @@ int puzzle_solver::solve()
     {
         return -1;
     }
+    // Heuristic done
+    if (p.is_fin() && p.is_correct())
+    {
+        // Print solution
+        const auto result = p.to_string();
+        if (puzzle_results.find(result) == puzzle_results.end())
+        {
+            puzzle_results.insert(result);
+            cout << result;
+            *os << result;
+        }
+    }
     DFS(p);
     return puzzle_results.size();
 }
@@ -136,6 +148,7 @@ int puzzle_solver::solve()
 bool puzzle_solver::heuristic(puzzle &p, bool ahead)
 {
     string last_step = p.to_string();
+    string curr_step;
     while (true)
     {
         ban_edge_around_one(p);
@@ -151,38 +164,39 @@ bool puzzle_solver::heuristic(puzzle &p, bool ahead)
         {
             return false;
         }
-        string curr_step = p.to_string();
+        curr_step = p.to_string();
         // run out of normal methods
         if (last_step.compare(curr_step) == 0)
         {
-            // look ahead
-            if (ahead == true)
-            {
-                if (try_draw(p) == false)
-                {
-                    return false;
-                }
-                else
-                {
-                    // look ahead make sense
-                    // try normal methods again
-                    curr_step = p.to_string();
-                    if (last_step.compare(curr_step) != 0)
-                    {
-                        last_step = curr_step;
-                        continue;
-                    }
-                }
-            }
-            // look head not useful
-            // return to DFS
-            return true;
+            break;
         }
         else // normal method make sense
         {
             last_step = curr_step;
         }
     }
+    // look ahead
+    while (ahead == true)
+    {
+        if (try_draw(p) == false)
+        {
+            return false;
+        }
+        else
+        {
+            // look ahead make sense
+            // try normal methods again
+            curr_step = p.to_string();
+            if (last_step.compare(curr_step) == 0)
+            {
+                break;
+            }
+            last_step = curr_step;
+        }
+    }
+    // look head not useful
+    // return to DFS
+    return true;
 }
 
 void puzzle_solver::ban_edge_around_zero(puzzle &p)
@@ -1212,19 +1226,6 @@ bool puzzle_solver::try_draw(puzzle &p)
 
 void puzzle_solver::DFS(puzzle &p)
 {
-    // Heuristic done
-    if (p.is_fin() && p.is_correct())
-    {
-        // Print solution
-        const auto result = p.to_string();
-        if (puzzle_results.find(result) == puzzle_results.end())
-        {
-            puzzle_results.insert(result);
-            cout << result;
-            *os << result;
-        }
-        return;
-    }
     // Start with one line
     for (size_t row = 0; row <= p.rows; row++)
     {
