@@ -2,6 +2,10 @@
 
 Puzzle loop is a NPC problem.
 
+## TODO
+
+Add a map of results of all one step trying to avoid duplicated heuristic process.
+
 ## Usage
 
 ```
